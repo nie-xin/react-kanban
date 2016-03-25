@@ -169,22 +169,83 @@ class KanbanBoardContainer extends Component {
     });
   }
 
+  addCard(card) {
+    let prevState = this.state;
+
+    if (card.id === null) {
+      let card = Object.assign({}, card, {id: Date.now()});
+    }
+
+    let nextState = update(this.state.cards, {$push: [card]});
+
+    fetch(`${API_URL}/cards`, {
+      method: 'post',
+      headers: API_HEADERS,
+      body: JSON.stringify(card)
+    })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error('Server response wasn\t OK');
+      }
+    })
+    .then((responseData) => {
+      card.id = responseData.id;
+      this.setState({cards: nextState});
+    })
+    .catch((error) => {
+      this.setState(prevState);
+    });
+  }
+
+  updateCard(card) {
+    let prevState = this.state;
+    let cardIndex = this.state.cards.findIndex((c) => c.id === card.id);
+    let nextState = update(
+      this.state.cards, {
+        [cardIndex]: {$set: card}
+      }
+    );
+
+    this.setState({cards: nextState});
+
+    fetch(`${API_URL}/cards/${card.id}`, {
+      method: 'put',
+      headers: API_HEADERS,
+      body: JSON.stringify(card)
+    })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Server response was\'s ok');
+      }
+    })
+    .catch((error) => {
+      console.error('Fetch error: ', error);
+      this.setState(prevState);
+    });
+  }
+
   render() {
-    return (
-      <KanbanBoard cards ={this.state.cards}
-      taskCallbacks={{
+    let KanbanBoard = this.props.children && React.cloneElement(this.props.children, {
+      cards: this.state.cards,
+      taskCallbacks: {
         toggle: this.toggleTask.bind(this),
         delete: this.deleteTask.bind(this),
         add: this.addTask.bind(this)
-      }}
-      cardCallbacks={{
-        updateStatus: this.updateCardStatus,
-        updatePosition: this.updateCardPosition,
+      },
+      cardCallbacks: {
+        addCard: this.addCard.bind(this),
+        updateCard: this.updateCard.bind(this),
+        updateStatus: this.updateCardStatus.bind(this),
+        updatePosition: throttle(this.updateCardPosition.bind(this), 500),
         persistCardDrag: this.persistCardDrag.bind(this)
-      }}
-      />
-    )
+      }
+    });
+
+    return KanbanBoard;
   }
+
 }
 
 export default KanbanBoardContainer;
