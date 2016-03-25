@@ -66,6 +66,7 @@ ul {
 }
 .card_title:before {
   display: inline-block;
+  margin-right: 5px;
   width: 1em;
   content: '\25BA';
 }
@@ -92,4 +93,26 @@ ul {
   padding: 10px;
   margin-top: 5px;
   border-radius: 3px;
+}
+
+.toggle-enter {
+  max-height: 0;
+  overflow: hidden;
+}
+
+.toggle-enter.toggle-enter-active {
+  max-height: 300px;
+  overflow: hidden;
+  transition: max-height .25s ease-in;
+}
+
+.toggle-leave {
+  max-height: 300px;
+  overflow: hidden;
+}
+
+.toggle-leave.toggle-leave-active {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .25s ease-out;
 }
